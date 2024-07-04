@@ -87,7 +87,7 @@ jobs:
         env:
           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
           WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
-          WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN_V2 }}
+          WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN_NONPROD }}
           DOCS_TAG: ${{ needs.build.outputs.tags }}
         run: |
           export PREVIEW_ENV="pr-${{ github.event.pull_request.number }}"
