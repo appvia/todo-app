@@ -51,6 +51,7 @@ jobs:
         env:
           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
           WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN }}
+          WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
         run: wf apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run server
   wf-diff:
     name: "Wayfinder Diff"
@@ -68,6 +69,7 @@ jobs:
         env:
           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
           WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN }}
+          WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
         run: |
           set +e
           wf diff -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --prune --prune-scope all 2>&1 | tee stdout.txt
