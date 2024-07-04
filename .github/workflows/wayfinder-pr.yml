@@ -36,9 +36,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Wayfinder dry-run (client)
         id: client
-        env:
-          WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
-        run: wf apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run client
+        run: wf -w ${{ vars.WAYFINDER_WORKSPACE }} apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run client
   wf-dry-run-server:
     name: "Wayfinder Dry Run (Server)"
     runs-on: ubuntu-latest
@@ -53,8 +51,7 @@ jobs:
         env:
           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
           WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN }}
-          WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
-        run: wf apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run server
+        run: wf -w ${{ vars.WAYFINDER_WORKSPACE }} apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run server
   wf-diff:
     name: "Wayfinder Diff"
     runs-on: ubuntu-latest
@@ -71,10 +68,9 @@ jobs:
         env:
           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
           WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN }}
-          WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
         run: |
           set +e
-          wf diff -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --prune --prune-scope all 2>&1 | tee stdout.txt
+          wf -w ${{ vars.WAYFINDER_WORKSPACE }} diff -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --prune --prune-scope all 2>&1 | tee stdout.txt
           diffExitCode=$?
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "stdout<<$EOF" >> "$GITHUB_OUTPUT"
@@ -176,15 +172,14 @@ jobs:
 #         id: deploy
 #         env:
 #           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
-#           WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
 #           WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN_V2 }}
 #           DOCS_TAG: ${{ needs.build.outputs.tags }}
 #         run: |
 #           export PREVIEW_ENV="pr-${{ github.event.pull_request.number }}"
 # {% endraw %}
-#           wf create appenv --app ${{ values.name }} --env ${PREVIEW_ENV} --cluster ${{ values.nonProdCluster }} --stage nonprod --wildcard-certs || true
-#           wf deploy component ${{ values.name }} ${PREVIEW_ENV} --component mysql --image ${DOCS_TAG} --wait-for-ready 3m
-#           wf deploy component ${{ values.name }} ${PREVIEW_ENV} --component app --image ${DOCS_TAG} --wait-for-ready 3m
+#           wf -w ${{ vars.WAYFINDER_WORKSPACE }} create appenv --app ${{ values.name }} --env ${PREVIEW_ENV} --cluster ${{ values.nonProdCluster }} --stage nonprod --wildcard-certs || true
+#           wf -w ${{ vars.WAYFINDER_WORKSPACE }} deploy component ${{ values.name }} ${PREVIEW_ENV} --component mysql --image ${DOCS_TAG} --wait-for-ready 3m
+#           wf -w ${{ vars.WAYFINDER_WORKSPACE }} deploy component ${{ values.name }} ${PREVIEW_ENV} --component app --image ${DOCS_TAG} --wait-for-ready 3m
 #           echo "PR_PREVIEW_URL=$(wf get appenv ${{ values.name }}-${PREVIEW_ENV} -o json | jq -r '.status.deployment.components[0].endpoint')" >> $GITHUB_OUTPUT
 # {% raw %}          
 
