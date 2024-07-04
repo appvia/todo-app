@@ -230,8 +230,8 @@ jobs:
           wf apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --prune --prune-scope all --wait-for-ready 5m --confirm
 {% endraw %}
           wf create appenv --app ${{ values.name }} --env ${PREVIEW_ENV} --cluster ${{ values.nonProdCluster }} --stage nonprod || true
-          wf deploy app marcin ${PREVIEW_ENV} --component-container-image app=app=${APP_IMAGE_TAG}
-          sleep 60
+          wf deploy app ${{ values.name }} ${PREVIEW_ENV} --component-container-image app=app=${APP_IMAGE_TAG}
+          sleep 30
           echo "PR_PREVIEW_URL=$(wf get appenv ${{ values.name }}-${PREVIEW_ENV} -o json | jq -r '.status.deployment.components[0].endpoint')" >> $GITHUB_OUTPUT
 {% raw %}
 
