@@ -36,6 +36,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Wayfinder dry-run (client)
         id: client
+        env:
+          WAYFINDER_WORKSPACE: ${{ vars.WAYFINDER_WORKSPACE }}
         run: wf apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run client
   wf-dry-run-server:
     name: "Wayfinder Dry Run (Server)"

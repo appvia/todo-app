@@ -3,21 +3,21 @@
 apiVersion: app.appvia.io/v2beta1
 kind: AppEnv
 metadata:
-  name: ${{ values.name }}-prod
+  name: ${{ values.name }}-staging
   namespace: ws-${{ values.workspaceKey }}
 spec:
   application: ${{ values.name }}
   cloud: aws
   cloudAccessConfigRef:
-    name: aws-prod
+    name: aws-nonprod
     workspace: ${{ values.workspaceKey }}
   clusterRef:
     group: compute.appvia.io
     kind: Cluster
-    name: ${{ values.prodCluster }}
+    name: ${{ values.nonprodCluster }}
     namespace: ws-${{ values.workspaceKey }}
     version: v2beta2
-  name: prod
-  namespace: ${{ values.name }}-prod
+  name: staging
+  namespace: ${{ values.name }}-staging
   region: eu-west-2
-  stage: prod
+  stage: nonprod
