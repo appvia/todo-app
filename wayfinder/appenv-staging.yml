@@ -14,7 +14,7 @@ spec:
   clusterRef:
     group: compute.appvia.io
     kind: Cluster
-    name: ${{ values.nonprodCluster }}
+    name: ${{ values.nonProdCluster }}
     namespace: ws-${{ values.workspaceKey }}
     version: v2beta2
   name: staging
