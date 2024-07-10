@@ -1,0 +1,23 @@
+---
+# yamllint disable rule:line-length
+apiVersion: app.appvia.io/v2beta1
+kind: AppEnv
+metadata:
+  name: ${{ values.name }}-prod
+  namespace: ws-${{ values.workspaceKey }}
+spec:
+  application: ${{ values.name }}
+  cloud: aws
+  cloudAccessConfigRef:
+    name: aws-prod
+    workspace: ${{ values.workspaceKey }}
+  clusterRef:
+    group: compute.appvia.io
+    kind: Cluster
+    name: ${{ values.prodCluster }}
+    namespace: ws-${{ values.workspaceKey }}
+    version: v2beta2
+  name: prod
+  namespace: ${{ values.name }}-prod
+  region: eu-west-2
+  stage: prod

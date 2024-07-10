@@ -1,0 +1,63 @@
+---
+apiVersion: app.appvia.io/v2beta1
+kind: AppComponent
+metadata:
+  name: ${{ values.name }}-mysql
+  namespace: ws-${{ values.workspaceKey }}
+spec:
+  application: ${{ values.name }}
+  container:
+    containers:
+      - env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: secret
+          - name: MYSQL_DATABASE
+            value: todos
+        image: mysql:5.7.33
+        name: mysql
+        ports:
+          - containerPort: 3306
+            expose: true
+            name: mysql
+            protocol: TCP
+    replicas: 1
+    tls: true
+  key: mysql
+  name: mysql
+  type: Container
+---
+apiVersion: app.appvia.io/v2beta1
+kind: AppComponent
+metadata:
+  name: ${{ values.name }}-app
+  namespace: ws-${{ values.workspaceKey }}
+spec:
+  application: ${{ values.name }}
+  container:
+    containers:
+      - env:
+          - name: MYSQL_HOST
+            value: mysql
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            value: secret
+          - name: MYSQL_DB
+            value: todos
+        image: quay.io/appvia/todo-app:latest
+        name: app
+        ports:
+          - containerPort: 3000
+            expose: true
+            name: http
+            protocol: TCP
+    expose:
+      container: app
+      port: 3000
+    replicas: 1
+    tls: true
+  dependsOn:
+    - mysql
+  key: app
+  name: app
+  type: Container
