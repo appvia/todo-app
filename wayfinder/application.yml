@@ -4,6 +4,6 @@ kind: Application
 metadata:
   name: ${{ values.name }}
 spec:
-  cloud: aws
+  cloud: ${{ values.cloud }}
   description: My TODO Application
   name: ${{ values.name }}

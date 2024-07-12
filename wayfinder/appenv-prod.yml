@@ -7,9 +7,9 @@ metadata:
   namespace: ws-${{ values.workspaceKey }}
 spec:
   application: ${{ values.name }}
-  cloud: aws
+  cloud: ${{ values.cloud }}
   cloudAccessConfigRef:
-    name: aws-prod
+    name: ${{ values.cloud }}-prod
     workspace: ${{ values.workspaceKey }}
   clusterRef:
     group: compute.appvia.io
@@ -19,5 +19,4 @@ spec:
     version: v2beta2
   name: prod
   namespace: ${{ values.name }}-prod
-  region: eu-west-2
   stage: prod
