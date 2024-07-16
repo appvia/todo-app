@@ -32,10 +32,35 @@ jobs:
       - name: Run yamllint
         id: lint
         run: yamllint ./wayfinder
+  wf:
+    name: "Wayfinder version and toolbox image"
+    runs-on: ubuntu-latest
+    container: quay.io/appvia-wf-dev/wftoolbox:latest
+    outputs:
+      version: ${{ steps.version.outputs.WAYFINDER_VERSION }}
+      toolbox: ${{ steps.toolbox.outputs.WAYFINDER_TOOLBOX_IMAGE }}
+    steps:
+    - name: Current Wayfinder version
+      id: version
+      env:
+        WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
+        WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN }}
+      run: echo "WAYFINDER_VERSION=$(wf serverinfo -o yaml | grep release | awk '{print $2}')" >> $GITHUB_OUTPUT
+    - name: Wayfinder toolbox image
+      id: toolbox
+      run: |
+        if [[ "${{ steps.version.outputs.WAYFINDER_VERSION }}" = *-* ]]; then
+          echo "WAYFINDER_TOOLBOX_IMAGE=quay.io/appvia-wf-dev/wftoolbox:${{ steps.version.outputs.WAYFINDER_VERSION }}" >> $GITHUB_OUTPUT
+        else
+          echo "WAYFINDER_TOOLBOX_IMAGE=quay.io/appvia-wayfinder/wftoolbox:${{ steps.version.outputs.WAYFINDER_VERSION }}" >> $GITHUB_OUTPUT
+        fi
+
   wf-dry-run-client:
     name: "Wayfinder Dry Run (Client)"
     runs-on: ubuntu-latest
-    container: quay.io/${{ vars.WAYFINDER_QUAY_ORG }}/wftoolbox:${{ vars.WAYFINDER_VERSION }}
+    needs:
+      - wf
+    container: ${{ needs.wf.outputs.toolbox }}
     outputs:
       result: ${{ steps.client.outcome }}
     steps:
@@ -44,10 +69,13 @@ jobs:
       - name: Wayfinder dry-run (client)
         id: client
         run: wf -w ${{ vars.WAYFINDER_WORKSPACE }} apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run client
+
   wf-dry-run-server:
     name: "Wayfinder Dry Run (Server)"
     runs-on: ubuntu-latest
-    container: quay.io/${{ vars.WAYFINDER_QUAY_ORG }}/wftoolbox:${{ vars.WAYFINDER_VERSION }}
+    needs:
+      - wf
+    container: ${{ needs.wf.outputs.toolbox }}
     outputs:
       result: ${{ steps.server.outcome }}
     steps:
@@ -59,10 +87,13 @@ jobs:
           WAYFINDER_SERVER: ${{ vars.WAYFINDER_SERVER }}
           WAYFINDER_TOKEN: ${{ secrets.WAYFINDER_TOKEN }}
         run: wf -w ${{ vars.WAYFINDER_WORKSPACE }} apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --dry-run server
+
   wf-diff:
     name: "Wayfinder Diff"
     runs-on: ubuntu-latest
-    container: quay.io/${{ vars.WAYFINDER_QUAY_ORG }}/wftoolbox:${{ vars.WAYFINDER_VERSION }}
+    needs:
+      - wf
+    container: ${{ needs.wf.outputs.toolbox }}
     outputs:
       result: ${{ steps.diff.outcome }}
       stdout: ${{ steps.diff.outputs.stdout }}
@@ -84,6 +115,7 @@ jobs:
           cat stdout.txt >> "$GITHUB_OUTPUT"
           echo "$EOF" >> "$GITHUB_OUTPUT"
           exit $diffExitCode
+
   update-pr:
     name: "Update PR"
     if: success() || failure()
@@ -213,8 +245,9 @@ jobs:
     if: success()
     runs-on: ubuntu-latest
     needs:
+      - wf
       - publish-image
-    container: quay.io/${{ vars.WAYFINDER_QUAY_ORG }}/wftoolbox:${{ vars.WAYFINDER_VERSION }}
+    container: ${{ needs.wf.outputs.toolbox }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -229,7 +262,7 @@ jobs:
           export PREVIEW_ENV="pr-${{ github.event.pull_request.number }}"
           wf apply -f ./wayfinder --owner ${{ vars.WAYFINDER_RESOURCE_OWNER }} --prune --prune-scope all --wait-for-ready 5m --confirm
 {% endraw %}
-          wf create appenv --app ${{ values.name }} --env ${PREVIEW_ENV} --cluster ${{ values.nonProdCluster }} --stage nonprod || true
+          wf create appenv --app ${{ values.name }} --env ${PREVIEW_ENV} --cluster ${{ values.nonProdClusterName }} --stage nonprod || true
           wf deploy app ${{ values.name }} ${PREVIEW_ENV} --component-container-image app=app=${APP_IMAGE_TAG}
           sleep 30
           echo "PR_PREVIEW_URL=$(wf get appenv ${{ values.name }}-${PREVIEW_ENV} -o json | jq -r '.status.deployment.components[0].endpoint')" >> $GITHUB_OUTPUT
