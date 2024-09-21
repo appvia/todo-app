@@ -9,7 +9,7 @@
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
-    "express": "^4.19",
+    "express": "^4.20",
     "mysql": "^2.18.1",
     "sqlite3": "^5.1",
     "uuid": "^10.0",
